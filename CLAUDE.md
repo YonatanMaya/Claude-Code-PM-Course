@@ -111,3 +111,19 @@ before regrouping properly on "the 4.2 picture."
   been revisited with Helen.
 - Console filter persistence (shipped in 4.2) is expected to generate
   low-value/cosmetic tickets — not worth spending time on.
+- **Working hypothesis on "phone never goes off":** `callout-history.csv`
+  shows most responders' acceptance rate dipped mildly after 4.2, but
+  four (Farlight, Meteor Mite, The Undertow, Vesper) collapsed hard —
+  both far fewer offers sent and a much lower share accepted. Ruled out
+  geography as the sole cause (Meteor Mite and The Gale share a handler
+  and a city, yet one went quiet and the other stayed busy). Tickets
+  for the four show the same pattern twice over: a long silence, then
+  losing the one offer that finally arrives almost instantly. Likely
+  mechanism: `history.py`'s `DECLINE_PENALTY` applies identically to a
+  decline and a timeout, so a responder who misses an offer because
+  they weren't expecting one (long silence made them less "primed") is
+  scored the same as one who refused outright — which can compound
+  into a self-reinforcing spiral. Not yet confirmed against real
+  routing internals — needs a conversation with Wen Li, who built the
+  ranking logic and is the only real source on how it behaves (no
+  design doc exists).
