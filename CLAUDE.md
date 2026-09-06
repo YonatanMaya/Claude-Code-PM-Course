@@ -127,3 +127,18 @@ before regrouping properly on "the 4.2 picture."
   routing internals — needs a conversation with Wen Li, who built the
   ranking logic and is the only real source on how it behaves (no
   design doc exists).
+
+  Independent corroboration from two handlers of responders who are
+  *not* among the four collapsed cases: Ambrose (handler for Captain
+  Vantage) says "there was a period where a slower-arriving response
+  of his still landed him the job more often than not, and lately
+  that doesn't seem to hold the way it used to" — a direct, code-blind
+  confirmation that recent-acceptance history no longer compensates
+  for speed the way it used to (consistent with
+  `WEIGHT_RECENT_ACCEPTANCE` dropping from 0.40 to 0.25 while
+  `WEIGHT_PROXIMITY` rose to 0.60). Halloran (handler for Sgt. Bulwark)
+  independently reports a near-identical near-miss. So the underlying
+  mechanism (rebalanced weights + a timeout too short to forgive a
+  slow reaction) appears to affect responders broadly, not just the
+  four — it just only spirals into a full collapse for the four who
+  also lost offer volume.
