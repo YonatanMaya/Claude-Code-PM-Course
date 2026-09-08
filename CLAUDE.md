@@ -128,3 +128,41 @@ handler phone app is Q4/exploring.)
   acceptance-rate reporting; requests go through #data.
 - **Priya Raghunathan** — my predecessor, departed 21 August after 14
   months as sole PM on Dispatch. Left a handover doc.
+
+### 4.2 investigation — findings so far (early September 2026)
+
+Dug into the actual evidence (`00-rook/code/dispatch-routing/`,
+`00-rook/data/callout-history.csv`, `00-rook/feedback/`), not just the
+narrative in the handover doc and Slack thread. Key findings, in case
+Priya's "mostly seasonal" read comes back up:
+
+- **The aggregate acceptance-rate "recovery" is an artifact, not good
+  news.** Per-responder data shows offer volume didn't shrink
+  system-wide — it *redistributed*. 4 of 16 sampled responders collapsed
+  to near-zero offers/week (Farlight, Meteor Mite, The Undertow, Vesper),
+  while 5 others gained 25–50% more. The blended average looks like it's
+  recovering only because the excluded group is shrinking to a smaller
+  share of total offers. Pure seasonality doesn't explain a redistribution
+  like this — it would shrink everyone's volume together, not split the
+  population into winners and losers.
+- **Leading mechanism (not yet confirmed against production logs):** the
+  4.2 weight rebalance (proximity 0.45→0.60, recent-acceptance 0.40→0.25)
+  made ranking stickier, and `offer.py` stops at the first acceptance —
+  so responders who rank slightly lower get offered work far less often
+  in practice, "eligible" or not. Combined with the shorter 60s timeout
+  (more recorded declines) and an asymmetric scoring model in
+  `history.py` (decline penalty 0.12 > acceptance credit 0.08, no
+  decay-to-neutral), this looks like a self-reinforcing feedback loop:
+  fall behind once, get fewer chances to recover, fall further behind.
+  Ticket and interview evidence fits this closely (Kip's two responders,
+  same week, one dead quiet one nonstop; several tickets describe a
+  responder's first offer in weeks being immediately lost to timeout).
+- **Before acting on this:** need per-incident routing-priority logs
+  (not weekly aggregates) for the affected responders from Wen, to
+  confirm the mechanism rather than just the correlation. Ravi should
+  start cutting acceptance rate per-responder, not just in aggregate —
+  the current metric structurally can't see this failure mode.
+- Also surfaced in Sofia's console interviews but *unrelated* to this
+  investigation, for the backlog: dark mode (Kip), requisition approval
+  queue speed and catalog search (Halloran, Supply-side), filter
+  persistence occasionally resetting silently (Ambrose).
