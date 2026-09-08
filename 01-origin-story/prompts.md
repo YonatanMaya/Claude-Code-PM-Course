@@ -23,38 +23,7 @@ built from your own questions.
 ---
 
 ### 1.
-Read everything in 00-rook/company/ and build the Working context
-section in CLAUDE.md from it.
 
 ### 2.
-What does "an incident comes in" actually mean — does it arrive by
-email, Slack, something else?
 
 ### 3.
-Who is Marcus? And what question would you ask yourself in my
-position right now?
-
-### 4.
-Ask that question as a real prompt: was the routing change in 4.2
-meant to apply to responders who've been declining callouts too, or
-only to everyone else?
-
-### 5.
-Check the callout history data to test that.
-
-### 6.
-Find the common denominator across the responders whose callouts
-dropped, and figure out why it looks like their phone "doesn't ring"
-anymore.
-
-### 7.
-Add that finding to CLAUDE.md, and let's verify it against whoever
-built the ranking logic.
-
-### 8.
-Let's read the interviews with her managers instead — one of the
-names we do have interviews for — and see how each account fits the
-hypothesis from before.
-
-### 9.
-Add this to CLAUDE.md.
