@@ -17,6 +17,13 @@ built from your own questions.
 
 ### 1.
 
+Find me the part of this code that takes points off somebody when they miss a ping or turn one down. Show it to me and explain it in plain English. Then find me every single thing in this code that puts points back on.
+
 ### 2.
 
+so how are we going to fix it? let's assume you are a 20 years experienced computer engineer
+What we should change
+
 ### 3.
+
+now if we are doing the migration for 4.3 all those Yes people would be deleted with their score - so how should we handle that

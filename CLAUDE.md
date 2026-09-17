@@ -166,3 +166,63 @@ Priya's "mostly seasonal" read comes back up:
   investigation, for the backlog: dark mode (Kip), requisition approval
   queue speed and catalog search (Halloran, Supply-side), filter
   persistence occasionally resetting silently (Ambrose).
+
+### 4.2 — code walkthrough, ticket-silence gap, and the actual fix (mid-September 2026)
+
+Went through `dispatch-routing/` line by line and cross-checked it against
+the ticket/interview evidence and a toy simulation. What's new since the
+last update:
+
+- **The exact scoring mechanism, confirmed in code:** `history.py` has
+  exactly one way down (`record_declined`, -0.12, fires identically for a
+  real decline *and* a timeout — no distinction) and exactly one way up
+  (`record_accepted`, +0.08, only fires if they're actually offered
+  something). No decay back toward neutral exists anywhere. So a
+  responder who stops getting offered anything has no way to recover —
+  the only door back in is an offer, and a low score is what's blocking
+  the offer. This is a pre-existing design gap (Wen's own 2019 TODO comment
+  flags it) that 4.2 didn't create but made severe, by shortening the
+  timeout (more penalty events) and making rank stickier (fewer chances
+  once you fall behind).
+- **Bigger-than-expected gap in how we'd have caught this without the
+  CSV:** of the four collapsed responders, two (Meteor Mite, Vesper)
+  generated *zero* support tickets from anyone — we only know about them
+  because Sofia happened to interview their handlers for an unrelated
+  console-redesign project. Farlight has exactly one ticket, filed by her
+  handler three weeks in, reluctantly. Only The Undertow used the ticket
+  system as intended. Takeaway: people who go quiet on the product also
+  go quiet on the feedback channel, so tickets can't be trusted as a
+  backstop for exactly this failure mode — need the per-responder metric
+  instrumentation regardless of ticket volume.
+- **Toy simulation (not real data, but useful):** rebuilt the actual
+  scoring formula with synthetic responders/regions. Directionally
+  confirms the 4.2 weight/timeout combination trends toward permanent
+  exclusion for a subset, more so than the pre-4.2 config did — supports
+  treating this as a property of the formula, not just a coincidence in
+  the August numbers. Still not a substitute for Wen confirming against
+  real per-incident logs.
+- **No console repo exists.** Checked GitHub — only 3 repos total on the
+  account, none besides this one relate to Rook. The console/mobile
+  front-end and incident intake aren't in any codebase I have access to;
+  `dispatch-routing` is the only real application code that exists for
+  Dispatch.
+- **Recommended fix, scoped as a 4.3 patch on top of 4.2, not a
+  revert:** (1) add decay back toward neutral in `history.py`, but
+  *one-directional only* — pull below-neutral scores up, leave
+  above-neutral scores alone, so responders who earned a good score
+  fairly (Nightwell, The Gale, Vantage, Stormwrack) don't get quietly
+  punished by a fix meant for the excluded group; (2) split the timeout
+  penalty from the active-decline penalty (timeout should cost less,
+  since we don't actually know they'd have said no); (3) put
+  `OFFER_TIMEOUT_SECONDS` back to 90; (4) leave the proximity/
+  recent-acceptance weights alone — that change was legitimately
+  requested and isn't confirmed as the root cause independent of the
+  scoring gap; (5) add a hard floor so nobody's score sits near zero
+  indefinitely; (6) stage the rollout and alert on per-responder volume
+  drops, not just the aggregate rate, this time.
+- **Open question for Wen/Marcus before finalizing:** `history.py`
+  stores scores in a plain in-memory dict in this code, with no visible
+  persistence layer. Need to confirm whether that's just this repo being
+  simplified for teaching purposes or an actual gap — either way, "don't
+  reset anyone's score on deploy" needs a real place to keep that score
+  first.
