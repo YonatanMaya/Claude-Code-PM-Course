@@ -6,7 +6,9 @@ puts the offer on their phone, and waits for an answer.
 - `config.py` — the tuning values. Timeout, weights, points.
 - `routing.py` — ranks the available responders for one callout.
 - `offer.py` — pushes the offer and waits; walks down the list.
-- `history.py` — the recent-acceptance score.
+- `history.py` — the recent-acceptance score. `decay_all()` needs to
+  run on a schedule (weekly) so a low score can recover on its own —
+  see 4.3 in the changelog.
 - `availability.py` — who's free, where they are, travel time.
 
 Nothing in here decides *whether* somebody gets asked. It decides the
