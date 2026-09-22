@@ -226,3 +226,63 @@ last update:
   simplified for teaching purposes or an actual gap — either way, "don't
   reset anyone's score on deploy" needs a real place to keep that score
   first.
+
+### 4.3 — the fix actually shipped as code (mid/late September 2026)
+
+Built Helen's requested one-pager and click-through for the quiet-responder
+fix, then went further and wrote the actual patch. All of this is on
+`claude/rook-dispatch-pm-onboarding-z8u4vy`, tracked by PR #1.
+
+- **For Helen:** `05-super-speed/one-pager.md` + a clickable mock
+  (`quiet-responder-mock.html`, then a corrected `prototype.html`)
+  told from Kip and Meteor Mite's side — who it's for, what changes,
+  what it deliberately doesn't do (not a setting, not instant, no
+  exposed score). `05-super-speed/brief.md` is the short status email
+  version — confirmed vs. still-needs-Wen's-sign-off, kept separate
+  from the click-through itself.
+- **Self-review caught real gaps before this went anywhere near
+  Marcus:** walking through Kip/Meteor Mite's actual week-by-week
+  experience surfaced that the first mock's "with fix" recovery curve
+  was unrealistically smooth, and that it showed The Gale's load
+  artificially easing down — which contradicts the fix's own logic
+  (above-neutral scores are never touched). Corrected in
+  `prototype.html`.
+- **Built `05-super-speed/routing-fix-simulator.html`** — not an
+  illustrative mock, an actual re-implementation of the real scoring
+  formulas from `config.py`/`history.py` in JS, running current (4.2)
+  vs. proposed (4.3) side by side across all 16 responders against
+  identical shared random rolls, so any gap shown is caused by the
+  rule, not luck. Has live sliders for decay rate / floor / timeout
+  penalty. Published as an Artifact; supports being edited via inline
+  comments on the page, not just chat (already used once — a
+  hover-effect request came in as an artifact comment and was
+  resolved that way).
+- **Hit and fixed a real calibration bug in the simulator**: initial
+  proximity gap between a "marked" (quiet-prone) responder and their
+  regionmates was mathematically impossible for any decay/floor value
+  to overcome, and the dominant regionmate absorbed nearly every
+  incident before it could cascade down — so Meteor Mite stayed frozen
+  at zero in both scenarios, which looked like the fix didn't work.
+  Narrowed the proximity spread and widened jitter/incident volume to
+  fix it. Worth remembering if the simulator ever looks "stuck" again
+  — check calibration before assuming the fix logic is wrong.
+- **The 4.3 patch is now real code**, not just a proposal, in
+  `00-rook/code/dispatch-routing/`:
+  - `config.py`: `OFFER_TIMEOUT_SECONDS` back to 90; added
+    `TIMEOUT_PENALTY` (0.04, vs. 0.12 for an active decline),
+    `DECAY_RATE` (0.08), `RECOVERY_FLOOR` (0.20). Proximity/
+    recent-acceptance weights deliberately untouched.
+  - `history.py`: split `record_timed_out()` from `record_declined()`;
+    added `decay_all()` — one-directional (only pulls a below-neutral
+    score up, never pulls a high one down) and floor-enforcing, meant
+    to run on a weekly schedule. This directly answers Wen's 2019 TODO
+    comment that had sat unresolved.
+  - `offer.py`: `dispatch()` now calls the right history function
+    depending on timeout vs. explicit decline.
+  - `CHANGELOG.md` and `README.md` updated to document all of this
+    under a new "4.3 — proposed, not yet shipped" entry.
+  - **Still open before this can actually ship:** `decay_all()` needs
+    something to actually call it on a schedule — nothing in this repo
+    wires that up yet. And the persistence-layer question from the
+    investigation above still isn't resolved. Both need Wen/Marcus
+    before this goes beyond a proposal in a PR.
