@@ -1,0 +1,519 @@
+<title>Getting Mite Back</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f4f7;
+    --surface: #ffffff;
+    --surface-2: #eaedf2;
+    --border: #dde1e8;
+    --text: #1c212b;
+    --muted: #5b6472;
+    --accent: #3f6fd6;
+    --accent-soft: #e8edfb;
+    --good: #2f9e5b;
+    --good-soft: #e5f5ec;
+    --warn: #b3751d;
+    --warn-soft: #faefdf;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b;
+      --surface: #1b1f28;
+      --surface-2: #232833;
+      --border: #2b3140;
+      --text: #e7e9ee;
+      --muted: #97a0b0;
+      --accent: #7099ee;
+      --accent-soft: #232c44;
+      --good: #52c07c;
+      --good-soft: #1d3327;
+      --warn: #dd9b46;
+      --warn-soft: #3a2e1b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b;
+    --surface: #1b1f28;
+    --surface-2: #232833;
+    --border: #2b3140;
+    --text: #e7e9ee;
+    --muted: #97a0b0;
+    --accent: #7099ee;
+    --accent-soft: #232c44;
+    --good: #52c07c;
+    --good-soft: #1d3327;
+    --warn: #dd9b46;
+    --warn-soft: #3a2e1b;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 20px;
+    padding-block: 32px;
+    line-height: 1.45;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  .wrap { max-width: 980px; margin-inline: auto; }
+
+  header h1 {
+    font-size: clamp(22px, 4vw, 30px);
+    margin: 0 0 6px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  header p.lede {
+    margin: 0 0 20px;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-block: 24px 28px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .toggle-label { font-size: 13px; color: var(--muted); }
+  .segmented {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .segmented button[aria-pressed="true"] {
+    background: var(--accent);
+    color: #fff;
+  }
+  .status-note {
+    margin-left: auto;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .devices {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 640px) {
+    .devices { grid-template-columns: 1fr; }
+  }
+
+  /* -- console mock: fixed dark chrome, Kip's own dark-mode ask, on purpose -- */
+  .console {
+    background: #14171e;
+    border: 1px solid #262c38;
+    border-radius: 12px;
+    padding: 18px;
+    color: #e7e9ee;
+  }
+  .console-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .console-head .title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #cfd4de;
+  }
+  .console-head .sub {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: #6b7383;
+  }
+  .cards { display: grid; gap: 12px; }
+  .rcard {
+    background: #1b202b;
+    border: 1px solid #2a3040;
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .rcard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .rcard-name { font-size: 14px; font-weight: 600; }
+  .rcard-tags {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    color: #7a8298;
+    margin-top: 2px;
+  }
+  .rcard-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .rcard-pill.warn { background: #3a2e1b; color: #dd9b46; }
+  .rcard-pill.good { background: #1d3327; color: #52c07c; }
+  .spark-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+  }
+  .spark-row svg { flex: 1; min-width: 0; }
+  .spark-meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    color: #8b93a4;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .spark-meta b { display: block; color: #e7e9ee; font-size: 13px; }
+
+  /* -- phone mock -- */
+  .phone-shell {
+    background: #0e1013;
+    border-radius: 32px;
+    padding: 10px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+  }
+  .phone-screen {
+    background: #fbfbfd;
+    border-radius: 24px;
+    overflow: hidden;
+    color: #1c212b;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-bar {
+    display: flex;
+    justify-content: space-between;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    color: #8a8f99;
+    padding: 8px 16px 2px;
+  }
+  .phone-head {
+    padding: 10px 16px 12px;
+    border-bottom: 1px solid #edeef1;
+  }
+  .phone-head .app {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8a8f99;
+    font-weight: 600;
+  }
+  .phone-head .who {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .notif-list {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .notif {
+    background: #f4f5f8;
+    border: 1px solid #e7e9ee;
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .notif .row1 {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .notif .row2 {
+    font-size: 11.5px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+  .notif.taken { border-color: #cdeadb; background: #f2fbf6; }
+  .notif.taken .row1 { color: #1f7a45; }
+  .notif-empty {
+    margin: auto;
+    text-align: center;
+    color: #9aa0ab;
+    font-size: 13px;
+    padding: 24px 20px;
+  }
+  .notif-empty .big { font-size: 26px; margin-bottom: 6px; }
+
+  .caption {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .constraints {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+  }
+  .ctag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .ctag b { display: block; color: var(--text); font-size: 13px; margin-bottom: 3px; }
+
+  footer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rook Dispatch &middot; before / after</div>
+    <h1>What changes for Meteor&nbsp;Mite, and for Kip</h1>
+    <p class="lede">
+      A rough click-through, not a spec. Same console, same phone &mdash;
+      shown with and without the fix to how a quiet responder's standing
+      recovers. Nothing here is a new screen; it's the same product,
+      behaving differently over the following weeks.
+    </p>
+  </header>
+
+  <div class="toggle-row">
+    <span class="toggle-label">Scenario</span>
+    <div class="segmented" role="group" aria-label="Scenario">
+      <button id="btn-without" aria-pressed="true">Without the fix</button>
+      <button id="btn-with" aria-pressed="false">With the fix</button>
+    </div>
+    <div class="status-note">
+      <span id="scenario-pill" class="pill warn"><span class="dot"></span>still stuck at 1/wk, six weeks on</span>
+    </div>
+  </div>
+
+  <div class="devices">
+    <div class="console">
+      <div class="console-head">
+        <span class="title">Coverage &middot; Kip's roster</span>
+        <span class="sub" id="console-date">week of 12 Oct</span>
+      </div>
+      <div class="cards">
+        <div class="rcard" id="card-mite">
+          <div class="rcard-top">
+            <div>
+              <div class="rcard-name">Meteor Mite</div>
+              <div class="rcard-tags">flight &middot; de-escalation</div>
+            </div>
+            <span class="rcard-pill warn" id="pill-mite">quiet</span>
+          </div>
+          <div class="spark-row">
+            <svg id="spark-mite" viewBox="0 0 260 46" preserveAspectRatio="none"></svg>
+            <div class="spark-meta">this week<b id="meta-mite">1</b></div>
+          </div>
+        </div>
+        <div class="rcard" id="card-gale">
+          <div class="rcard-top">
+            <div>
+              <div class="rcard-name">The Gale</div>
+              <div class="rcard-tags">structural&#8209;entry &middot; hazmat&#8209;tolerant</div>
+            </div>
+            <span class="rcard-pill good">steady</span>
+          </div>
+          <div class="spark-row">
+            <svg id="spark-gale" viewBox="0 0 260 46" preserveAspectRatio="none"></svg>
+            <div class="spark-meta">this week<b id="meta-gale">19</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="phone-bar"><span>9:41</span><span>&#128246;</span></div>
+          <div class="phone-head">
+            <div class="app">Rook &middot; callouts</div>
+            <div class="who">Meteor Mite</div>
+          </div>
+          <div class="notif-list" id="notif-list"></div>
+        </div>
+      </div>
+      <p class="caption">Meteor Mite's phone, same week</p>
+    </div>
+  </div>
+
+  <div class="constraints">
+    <div class="ctag"><b>Not a setting</b>No dial for Kip, no manual override on a specific responder.</div>
+    <div class="ctag"><b>Not instant</b>Recovery is gradual over following weeks, not a reset on deploy day.</div>
+    <div class="ctag"><b>No score shown</b>Neither Kip nor Meteor Mite ever sees a number like this &mdash; only what's shown here today: offer counts and status.</div>
+  </div>
+
+  <footer>
+    Sparklines and offer counts through 31&nbsp;Aug are the real weekly
+    numbers from <span class="mono">callout-history.csv</span>. Weeks
+    after that are illustrative &mdash; a projection of what each
+    scenario would look like, not measured data.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var weeksPast = ["6/29","7/06","7/13","7/20","7/27","8/03","8/10","8/17","8/24","8/31"];
+  var mitePast = [11,12,10,11,12,11,10,4,2,1];
+  var galePast = [13,12,13,14,13,13,15,17,20,21];
+
+  var futureWeeks = ["9/07","9/14","9/21","9/28","10/05","10/12"];
+  var miteWithout = [1,1,0,1,0,1];               // stays stuck, illustrative
+  var miteWith    = [2,4,7,9,10,11];              // gradual recovery, illustrative
+  var galeWithout = [21,20,19,20,18,19];          // stays overloaded
+  var galeWith    = [21,18,16,15,14,13];          // eases back toward normal
+
+  function buildSpark(svg, data, color) {
+    var max = Math.max(22, Math.max.apply(null, data));
+    var w = 260, h = 46, n = data.length;
+    var stepX = w / (n - 1);
+    var pts = data.map(function (v, i) {
+      var x = i * stepX;
+      var y = h - (v / max) * (h - 6) - 3;
+      return [x, y];
+    });
+    var path = pts.map(function (p, i) {
+      return (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1);
+    }).join(" ");
+    var lastPt = pts[pts.length - 1];
+    svg.innerHTML =
+      '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="' + lastPt[0].toFixed(1) + '" cy="' + lastPt[1].toFixed(1) + '" r="3" fill="' + color + '"/>';
+  }
+
+  function render(withFix) {
+    var mite = weeksPast.concat(futureWeeks);
+    var miteData = mitePast.concat(withFix ? miteWith : miteWithout);
+    var galeData = galePast.concat(withFix ? galeWith : galeWithout);
+
+    buildSpark(document.getElementById('spark-mite'), miteData, '#dd9b46');
+    buildSpark(document.getElementById('spark-gale'), galeData, '#52c07c');
+
+    var miteNow = miteData[miteData.length - 1];
+    var galeNow = galeData[galeData.length - 1];
+    document.getElementById('meta-mite').textContent = miteNow;
+    document.getElementById('meta-gale').textContent = galeNow;
+
+    var pillMite = document.getElementById('pill-mite');
+    var scenarioPill = document.getElementById('scenario-pill');
+    document.getElementById('console-date').textContent = 'week of ' + futureWeeks[futureWeeks.length - 1];
+
+    if (withFix) {
+      pillMite.className = 'rcard-pill good';
+      pillMite.textContent = 'back in rotation';
+      scenarioPill.className = 'pill good';
+      scenarioPill.innerHTML = '<span class="dot"></span>climbing back toward his old ~11/wk';
+    } else {
+      pillMite.className = 'rcard-pill warn';
+      pillMite.textContent = 'quiet';
+      scenarioPill.className = 'pill warn';
+      scenarioPill.innerHTML = '<span class="dot"></span>still stuck at ' + miteNow + '/wk, six weeks on';
+    }
+
+    // phone notifications for Meteor Mite, last 4 slots of this scenario
+    var list = document.getElementById('notif-list');
+    var recent = miteData.slice(-4);
+    var recentWeeks = mite.slice(-4);
+    list.innerHTML = '';
+    var any = recent.some(function (v) { return v > 0; });
+    if (!any) {
+      list.innerHTML = '<div class="notif-empty"><div class="big">&#128564;</div>No callout offers this week.<br>Nothing since 31&nbsp;Aug.</div>';
+      return;
+    }
+    recent.forEach(function (count, i) {
+      var wk = recentWeeks[i];
+      if (count === 0) {
+        var d = document.createElement('div');
+        d.className = 'notif';
+        d.innerHTML = '<div class="row1"><span>No offers</span><span class="mono">' + wk + '</span></div><div class="row2">Nothing sent this week.</div>';
+        list.appendChild(d);
+      } else {
+        var d2 = document.createElement('div');
+        d2.className = 'notif taken';
+        d2.innerHTML = '<div class="row1"><span>Callout accepted</span><span class="mono">' + wk + '</span></div><div class="row2">' + count + ' offer' + (count === 1 ? '' : 's') + ' this week, took ' + Math.max(1, count - 1) + '.</div>';
+        list.appendChild(d2);
+      }
+    });
+  }
+
+  var btnWithout = document.getElementById('btn-without');
+  var btnWith = document.getElementById('btn-with');
+
+  function setScenario(withFix) {
+    btnWithout.setAttribute('aria-pressed', String(!withFix));
+    btnWith.setAttribute('aria-pressed', String(withFix));
+    render(withFix);
+  }
+
+  btnWithout.addEventListener('click', function () { setScenario(false); });
+  btnWith.addEventListener('click', function () { setScenario(true); });
+
+  render(false);
+})();
+</script>
