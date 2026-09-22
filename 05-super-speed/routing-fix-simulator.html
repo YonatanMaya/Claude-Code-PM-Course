@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Routing Fix Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b23;
+    --panel-2: #1c222c;
+    --border: #262e3a;
+    --text: #e7ebf1;
+    --muted: #8994a6;
+    --accent: #6f97e8;
+    --current: #dd9b46;
+    --fixed: #52c07c;
+    --bad: #e0605a;
+    --note: #b48ee8;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 20px;
+    padding-block: 26px;
+    line-height: 1.45;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  .wrap { max-width: 1180px; margin-inline: auto; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 { font-size: clamp(20px, 3.5vw, 26px); margin: 0 0 8px; letter-spacing: -0.01em; }
+  p.lede { margin: 0 0 18px; max-width: 74ch; color: var(--muted); font-size: 14px; }
+  p.lede b { color: var(--text); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: flex-end;
+    margin-bottom: 18px;
+  }
+  .btn-group { display: flex; gap: 8px; }
+  button.action {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 9px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button.action.primary { background: var(--accent); border-color: var(--accent); color: #0e1116; }
+  button.action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.action:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .sliders { display: flex; gap: 22px; flex-wrap: wrap; }
+  .slider-field { display: flex; flex-direction: column; gap: 4px; min-width: 170px; }
+  .slider-field label { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  .slider-field label b { color: var(--fixed); font-family: "IBM Plex Mono", monospace; }
+  .slider-field input[type="range"] { accent-color: var(--fixed); width: 100%; }
+  .slider-note { font-size: 10px; color: var(--muted); margin-top: -2px; }
+
+  .week-status {
+    margin-left: auto;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+  }
+  .week-status b { color: var(--text); font-size: 16px; display: block; }
+
+  .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .columns { grid-template-columns: 1fr; } }
+
+  .col-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .col-head .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .col-head.current .tag { background: #3a2e1b; color: var(--current); }
+  .col-head.fixed .tag { background: #1d3327; color: var(--fixed); }
+  .col-head h2 { font-size: 14px; margin: 0; }
+  .col-head span.sub { font-size: 11px; color: var(--muted); }
+
+  .stat-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .stat {
+    flex: 1;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .stat .k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat .v { font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 600; margin-top: 2px; }
+  .stat.warn .v { color: var(--bad); }
+  .stat.ok .v { color: var(--fixed); }
+
+  .region-block { margin-bottom: 10px; }
+  .region-label { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  @media (max-width: 560px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    position: relative;
+  }
+  .tile.marked { border-color: var(--note); }
+  .tile .name { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .star { color: var(--note); font-size: 10px; }
+  .tile .count { font-family: "IBM Plex Mono", monospace; font-size: 15px; margin-top: 4px; }
+  .tile .badge {
+    display: inline-block;
+    margin-top: 3px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 999px;
+  }
+  .badge.quiet { background: #3a2e1b; color: var(--current); }
+  .badge.steady { background: #1c2536; color: var(--accent); }
+  .badge.good { background: #1d3327; color: var(--fixed); }
+
+  .console-strip {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: minmax(0,1.4fr) minmax(0,1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 760px) { .console-strip { grid-template-columns: 1fr; } }
+  .console-note {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .kip-card {
+    background: #14171e;
+    border: 1px solid #262c38;
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .kip-card .head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .kip-card .head .t { font-size: 11.5px; color: #cfd4de; font-weight: 600; }
+  .kip-card .head .s { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: #6b7383; }
+  .kip-row { display: flex; justify-content: space-between; align-items: center; background: #1b202b; border: 1px solid #2a3040; border-radius: 8px; padding: 9px 11px; margin-bottom: 6px; }
+  .kip-row .kn { font-size: 12.5px; font-weight: 600; }
+  .kip-row .kt { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: #7a8298; margin-top: 1px; }
+  .kip-row .kb { font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+  .kip-row .kb.quiet { background: #3a2e1b; color: var(--current); }
+  .kip-row .kb.good { background: #1d3327; color: var(--fixed); }
+  .kip-legend {
+    font-size: 10px;
+    color: #6b7383;
+    margin-top: 6px;
+    border-top: 1px dashed #2a3040;
+    padding-top: 6px;
+  }
+  .tag-legend {
+    display: none;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    color: #9aa3b5;
+    background: #1b202b;
+    border: 1px solid #2a3040;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-top: 6px;
+  }
+  .tag-legend.show { display: block; }
+  .legend-toggle {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .phone-mini {
+    background: #0e1013;
+    border-radius: 22px;
+    padding: 8px;
+  }
+  .phone-mini-screen {
+    background: #fbfbfd;
+    border-radius: 16px;
+    color: #1c212b;
+    padding: 10px 12px;
+    min-height: 150px;
+  }
+  .phone-mini-screen .app { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #8a8f99; font-weight: 700; }
+  .phone-mini-screen .who { font-size: 14px; font-weight: 700; margin: 2px 0 8px; }
+  .phone-mini-screen .line { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #444; display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee; }
+  .phone-cap { text-align: center; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  .footnote { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); }
+  .footnote code { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Rook Dispatch &middot; engineering review instrument, not a product screen</div>
+  <h1>Routing fix simulator</h1>
+  <p class="lede">
+    This runs the actual scoring rules &mdash; the real weights, the
+    real decline/accept math from <code>config.py</code> and
+    <code>history.py</code> &mdash; against sixteen simulated
+    responders, two ways at once: <b style="color:var(--current)">as
+    4.2 shipped</b>, and <b style="color:var(--fixed)">with the
+    proposed 4.3 patch</b>. Both columns see the exact same sequence
+    of incidents and the exact same underlying "would this person say
+    yes" rolls each week &mdash; so whatever difference you see is
+    caused by the rule, not by luck. The four marked responders
+    (&#9733;) are Farlight, Meteor&nbsp;Mite, The&nbsp;Undertow and
+    Vesper &mdash; the ones who actually collapsed in the real data.
+  </p>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="btn-group">
+        <button class="action primary" id="btn-week">Run 1 week</button>
+        <button class="action" id="btn-six">Run 6 weeks</button>
+        <button class="action" id="btn-reset">Reset &amp; reseed</button>
+      </div>
+
+      <div class="sliders">
+        <div class="slider-field">
+          <label>Decay rate (fixed only) <b id="v-decay">0.08</b></label>
+          <input type="range" id="s-decay" min="0" max="20" value="8">
+          <span class="slider-note">how fast a low standing drifts back toward neutral each week</span>
+        </div>
+        <div class="slider-field">
+          <label>Floor (fixed only) <b id="v-floor">0.20</b></label>
+          <input type="range" id="s-floor" min="0" max="40" value="20">
+          <span class="slider-note">standing can never sit below this</span>
+        </div>
+        <div class="slider-field">
+          <label>Timeout penalty (fixed only) <b id="v-tpen">0.04</b></label>
+          <input type="range" id="s-tpen" min="0" max="12" value="4">
+          <span class="slider-note">vs. 0.12 for an actual decline, both scenarios</span>
+        </div>
+      </div>
+
+      <div class="week-status">
+        week<b id="week-num">0</b>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div>
+        <div class="col-head current">
+          <div><h2>Current &mdash; 4.2 as shipped</h2><span class="sub">60s timeout &middot; miss = decline, no recovery</span></div>
+          <span class="tag">baseline</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat warn"><div class="k">at 0&ndash;1 offers</div><div class="v" id="cur-quiet">&mdash;</div></div>
+          <div class="stat"><div class="k">system offers</div><div class="v" id="cur-sent">&mdash;</div></div>
+          <div class="stat"><div class="k">accept rate</div><div class="v" id="cur-rate">&mdash;</div></div>
+        </div>
+        <div id="cur-regions"></div>
+      </div>
+      <div>
+        <div class="col-head fixed">
+          <div><h2>Proposed &mdash; 4.3 fix</h2><span class="sub">90s timeout &middot; split penalty &middot; decay &middot; floor</span></div>
+          <span class="tag">proposed</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat ok"><div class="k">at 0&ndash;1 offers</div><div class="v" id="fix-quiet">&mdash;</div></div>
+          <div class="stat"><div class="k">system offers</div><div class="v" id="fix-sent">&mdash;</div></div>
+          <div class="stat"><div class="k">accept rate</div><div class="v" id="fix-rate">&mdash;</div></div>
+        </div>
+        <div id="fix-regions"></div>
+      </div>
+    </div>
+
+    <div class="console-strip">
+      <div>
+        <div class="console-note">
+          Same numbers as the <b style="color:var(--fixed)">Proposed</b> column
+          above for Meteor&nbsp;Mite, shown the way Kip's actual
+          coverage view presents it &mdash; dark mode (he's asked for
+          this every time anyone from Rook has talked to him), status
+          badge, capability tag legend tucked in a drawer he opens
+          "perhaps once a fortnight."
+        </div>
+        <div class="kip-card">
+          <div class="head"><span class="t">Coverage &middot; Kip's roster</span><span class="s" id="kip-week">week 0</span></div>
+          <div class="kip-row">
+            <div><div class="kn">Meteor Mite</div><div class="kt">this week: <span id="kip-mite-count">&mdash;</span> offers</div></div>
+            <span class="kb quiet" id="kip-mite-badge">quiet</span>
+          </div>
+          <div class="kip-row">
+            <div><div class="kn">The Gale</div><div class="kt">this week: <span id="kip-gale-count">&mdash;</span> offers</div></div>
+            <span class="kb good" id="kip-gale-badge">steady</span>
+          </div>
+          <div class="kip-legend">
+            <button class="legend-toggle" id="legend-toggle">capability tag legend &#9662;</button>
+            <div class="tag-legend" id="legend-body">
+              flight &middot; structural-entry &middot; hazmat-tolerant &middot;
+              cold-weather &middot; aquatic &middot; crowd-management &middot;
+              de-escalation
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="phone-mini">
+          <div class="phone-mini-screen">
+            <div class="app">Rook &middot; callouts</div>
+            <div class="who">Meteor Mite</div>
+            <div id="phone-mini-lines"></div>
+          </div>
+        </div>
+        <p class="phone-cap">his phone, same week, proposed scenario</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    Proximity weight 0.60 / recent-acceptance weight 0.25 / capability
+    0.15 are unchanged from 4.2 in both columns, per the recommendation
+    not to reopen that tradeoff. Willingness to accept if reached in
+    time is set equal for every responder (0.78) in this model &mdash;
+    on purpose, since the real pre-4.2 acceptance rates for the four
+    affected responders were normal (68&ndash;82%). Region groupings
+    and each responder's proximity value are illustrative, built to
+    reproduce the shape of the real collapse; they are not measured
+    data. Reset reseeds the shared random sequence so both columns
+    stay comparable.
+  </div>
+</div>
+
+<script>
+(function () {
+  // ---- seeded RNG (mulberry32), shared between both scenarios ----
+  var seed = 1337;
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var rng;
+
+  var REGIONS = [
+    { label: "region A", members: [
+      { name: "Meteor Mite", prox: 0.35, marked: true },
+      { name: "The Gale",    prox: 0.82, marked: false },
+      { name: "Captain Vantage", prox: 0.70, marked: false },
+      { name: "Sgt. Bulwark", prox: 0.60, marked: false }
+    ]},
+    { label: "region B", members: [
+      { name: "Farlight", prox: 0.38, marked: true },
+      { name: "Nightwell", prox: 0.80, marked: false },
+      { name: "Cindermark", prox: 0.65, marked: false },
+      { name: "The Longcast", prox: 0.55, marked: false }
+    ]},
+    { label: "region C", members: [
+      { name: "The Undertow", prox: 0.36, marked: true },
+      { name: "Stormwrack", prox: 0.78, marked: false },
+      { name: "Corporal Ashgrove", prox: 0.62, marked: false },
+      { name: "Halfmoon", prox: 0.58, marked: false }
+    ]},
+    { label: "region D", members: [
+      { name: "Vesper", prox: 0.40, marked: true },
+      { name: "Sgt. Falkirk", prox: 0.75, marked: false },
+      { name: "Ironvale", prox: 0.63, marked: false },
+      { name: "The Drift", prox: 0.52, marked: false }
+    ]}
+  ];
+
+  var W_PROX = 0.60, W_HIST = 0.25, W_CAP = 0.15;
+  var WILLINGNESS = 0.78;
+  var ACCEPT_CREDIT = 0.08;
+  var DECLINE_PENALTY = 0.12;
+  var TIMEOUT_MISS_CURRENT = 0.22; // 60s
+  var TIMEOUT_MISS_FIXED = 0.06;   // 90s
+
+  var state; // { current: {...}, fixed: {...}, week: 0 }
+
+  function freshResponderState() {
+    var out = {};
+    REGIONS.forEach(function (r) {
+      r.members.forEach(function (m) {
+        out[m.name] = { hist: 0.5, sentThisWeek: 0, takenThisWeek: 0, mite: [] };
+      });
+    });
+    return out;
+  }
+
+  function reset() {
+    rng = mulberry32(seed);
+    state = {
+      week: 0,
+      current: freshResponderState(),
+      fixed: freshResponderState(),
+      miteHistory: [] // {week, current, fixed} offer counts for Meteor Mite
+    };
+    render();
+  }
+
+  function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+  function runWeek() {
+    state.week += 1;
+    REGIONS.forEach(function (region) {
+      // reset weekly counters
+      region.members.forEach(function (m) {
+        state.current[m.name].sentThisWeek = 0;
+        state.current[m.name].takenThisWeek = 0;
+        state.fixed[m.name].sentThisWeek = 0;
+        state.fixed[m.name].takenThisWeek = 0;
+      });
+
+      var nIncidents = 2 + Math.floor(rng() * 3); // 2..4
+      for (var inc = 0; inc < nIncidents; inc++) {
+        // shared per-responder rolls for this incident
+        var rolls = {};
+        region.members.forEach(function (m) {
+          rolls[m.name] = {
+            prox: clamp01(m.prox + (rng() - 0.5) * 0.3),
+            yes: rng(),
+            miss: rng()
+          };
+        });
+
+        processIncident(region, rolls, 'current', TIMEOUT_MISS_CURRENT, DECLINE_PENALTY, 0, false);
+        processIncident(region, rolls, 'fixed', TIMEOUT_MISS_FIXED, DECLINE_PENALTY, getTimeoutPenalty(), true);
+      }
+
+      // end-of-week: floor + one-directional decay, fixed scenario only
+      var decayRate = getDecayRate();
+      var floor = getFloor();
+      region.members.forEach(function (m) {
+        var s = state.fixed[m.name];
+        if (s.hist < floor) s.hist = floor;
+        if (s.hist < 0.5) s.hist += (0.5 - s.hist) * decayRate;
+        s.hist = clamp01(s.hist);
+      });
+    });
+
+    var mite = { week: state.week, current: state.current['Meteor Mite'].sentThisWeek, fixed: state.fixed['Meteor Mite'].sentThisWeek };
+    state.miteHistory.push(mite);
+    if (state.miteHistory.length > 4) state.miteHistory.shift();
+
+    render();
+  }
+
+  function processIncident(region, rolls, scenarioKey, timeoutMissRate, declinePenalty, timeoutPenalty, useTimeoutSplit) {
+    var scen = state[scenarioKey];
+    var ranked = region.members.slice().sort(function (a, b) {
+      var sa = W_PROX * rolls[a.name].prox + W_HIST * scen[a.name].hist + W_CAP * 1;
+      var sb = W_PROX * rolls[b.name].prox + W_HIST * scen[b.name].hist + W_CAP * 1;
+      return sb - sa;
+    });
+    for (var i = 0; i < ranked.length; i++) {
+      var name = ranked[i].name;
+      var r = rolls[name];
+      var s = scen[name];
+      s.sentThisWeek += 1;
+      var trueYes = r.yes < WILLINGNESS;
+      if (trueYes && r.miss < timeoutMissRate) {
+        // timed out
+        var pen = useTimeoutSplit ? timeoutPenalty : declinePenalty;
+        s.hist = clamp01(s.hist - pen);
+        continue;
+      }
+      if (trueYes) {
+        s.hist = clamp01(s.hist + ACCEPT_CREDIT);
+        s.takenThisWeek += 1;
+        return; // incident filled
+      }
+      // explicit decline
+      s.hist = clamp01(s.hist - declinePenalty);
+    }
+  }
+
+  function getDecayRate() { return parseInt(document.getElementById('s-decay').value, 10) / 100; }
+  function getFloor() { return parseInt(document.getElementById('s-floor').value, 10) / 100; }
+  function getTimeoutPenalty() { return parseInt(document.getElementById('s-tpen').value, 10) / 100; }
+
+  function statusFor(count) {
+    if (count <= 1) return { cls: 'quiet', label: 'quiet' };
+    if (count <= 5) return { cls: 'steady', label: 'starting to move' };
+    return { cls: 'good', label: 'back in rotation' };
+  }
+
+  function renderColumn(scenarioKey, containerId) {
+    var scen = state[scenarioKey];
+    var container = document.getElementById(containerId);
+    container.innerHTML = '';
+    var totalSent = 0, totalTaken = 0, quietCount = 0;
+    REGIONS.forEach(function (region) {
+      totalSent += region.members.reduce(function (a, m) { return a + scen[m.name].sentThisWeek; }, 0);
+      totalTaken += region.members.reduce(function (a, m) { return a + scen[m.name].takenThisWeek; }, 0);
+
+      var block = document.createElement('div');
+      block.className = 'region-block';
+      var label = document.createElement('div');
+      label.className = 'region-label';
+      label.textContent = region.label;
+      block.appendChild(label);
+      var tiles = document.createElement('div');
+      tiles.className = 'tiles';
+      region.members.forEach(function (m) {
+        var s = scen[m.name];
+        if (s.sentThisWeek <= 1) quietCount++;
+        var st = statusFor(s.sentThisWeek);
+        var tile = document.createElement('div');
+        tile.className = 'tile' + (m.marked ? ' marked' : '');
+        tile.innerHTML =
+          '<div class="name">' + (m.marked ? '<span class="star">&#9733;</span> ' : '') + m.name + '</div>' +
+          '<div class="count">' + s.sentThisWeek + '</div>' +
+          '<span class="badge ' + st.cls + '">' + st.label + '</span>';
+        tiles.appendChild(tile);
+      });
+      block.appendChild(tiles);
+      container.appendChild(block);
+    });
+
+    document.getElementById(scenarioKey === 'current' ? 'cur-quiet' : 'fix-quiet').textContent = quietCount + '/16';
+    document.getElementById(scenarioKey === 'current' ? 'cur-sent' : 'fix-sent').textContent = totalSent;
+    document.getElementById(scenarioKey === 'current' ? 'cur-rate' : 'fix-rate').textContent =
+      totalSent ? Math.round((totalTaken / totalSent) * 100) + '%' : '&mdash;';
+  }
+
+  function renderKipStrip() {
+    document.getElementById('kip-week').textContent = 'week ' + state.week;
+    var mite = state.fixed['Meteor Mite'];
+    var gale = state.fixed['The Gale'];
+    document.getElementById('kip-mite-count').textContent = mite.sentThisWeek;
+    document.getElementById('kip-gale-count').textContent = gale.sentThisWeek;
+    var mSt = statusFor(mite.sentThisWeek);
+    var badge = document.getElementById('kip-mite-badge');
+    badge.className = 'kb ' + (mSt.cls === 'good' ? 'good' : 'quiet');
+    badge.textContent = mSt.label;
+
+    var lines = document.getElementById('phone-mini-lines');
+    lines.innerHTML = '';
+    if (state.miteHistory.length === 0) {
+      lines.innerHTML = '<div class="line"><span>No weeks run yet</span><span>&mdash;</span></div>';
+    } else {
+      state.miteHistory.slice().reverse().forEach(function (h) {
+        lines.innerHTML += '<div class="line"><span>week ' + h.week + '</span><span>' + h.fixed + ' offer' + (h.fixed === 1 ? '' : 's') + '</span></div>';
+      });
+    }
+  }
+
+  function render() {
+    document.getElementById('week-num').textContent = state.week;
+    renderColumn('current', 'cur-regions');
+    renderColumn('fixed', 'fix-regions');
+    renderKipStrip();
+  }
+
+  document.getElementById('btn-week').addEventListener('click', runWeek);
+  document.getElementById('btn-six').addEventListener('click', function () {
+    for (var i = 0; i < 6; i++) runWeek();
+  });
+  document.getElementById('btn-reset').addEventListener('click', reset);
+
+  ['s-decay', 's-floor', 's-tpen'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', function () {
+      document.getElementById('v-decay').textContent = getDecayRate().toFixed(2);
+      document.getElementById('v-floor').textContent = getFloor().toFixed(2);
+      document.getElementById('v-tpen').textContent = getTimeoutPenalty().toFixed(2);
+    });
+  });
+  document.getElementById('v-decay').textContent = getDecayRate().toFixed(2);
+  document.getElementById('v-floor').textContent = getFloor().toFixed(2);
+  document.getElementById('v-tpen').textContent = getTimeoutPenalty().toFixed(2);
+
+  document.getElementById('legend-toggle').addEventListener('click', function () {
+    var body = document.getElementById('legend-body');
+    body.classList.toggle('show');
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>
