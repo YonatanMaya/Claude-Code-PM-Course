@@ -383,27 +383,27 @@
 
   var REGIONS = [
     { label: "region A", members: [
-      { name: "Meteor Mite", prox: 0.35, marked: true },
-      { name: "The Gale",    prox: 0.82, marked: false },
-      { name: "Captain Vantage", prox: 0.70, marked: false },
-      { name: "Sgt. Bulwark", prox: 0.60, marked: false }
+      { name: "Meteor Mite", prox: 0.45, marked: true },
+      { name: "The Gale",    prox: 0.68, marked: false },
+      { name: "Captain Vantage", prox: 0.62, marked: false },
+      { name: "Sgt. Bulwark", prox: 0.55, marked: false }
     ]},
     { label: "region B", members: [
-      { name: "Farlight", prox: 0.38, marked: true },
-      { name: "Nightwell", prox: 0.80, marked: false },
-      { name: "Cindermark", prox: 0.65, marked: false },
-      { name: "The Longcast", prox: 0.55, marked: false }
+      { name: "Farlight", prox: 0.46, marked: true },
+      { name: "Nightwell", prox: 0.66, marked: false },
+      { name: "Cindermark", prox: 0.60, marked: false },
+      { name: "The Longcast", prox: 0.53, marked: false }
     ]},
     { label: "region C", members: [
-      { name: "The Undertow", prox: 0.36, marked: true },
-      { name: "Stormwrack", prox: 0.78, marked: false },
-      { name: "Corporal Ashgrove", prox: 0.62, marked: false },
-      { name: "Halfmoon", prox: 0.58, marked: false }
+      { name: "The Undertow", prox: 0.44, marked: true },
+      { name: "Stormwrack", prox: 0.67, marked: false },
+      { name: "Corporal Ashgrove", prox: 0.61, marked: false },
+      { name: "Halfmoon", prox: 0.54, marked: false }
     ]},
     { label: "region D", members: [
-      { name: "Vesper", prox: 0.40, marked: true },
-      { name: "Sgt. Falkirk", prox: 0.75, marked: false },
-      { name: "Ironvale", prox: 0.63, marked: false },
+      { name: "Vesper", prox: 0.47, marked: true },
+      { name: "Sgt. Falkirk", prox: 0.65, marked: false },
+      { name: "Ironvale", prox: 0.59, marked: false },
       { name: "The Drift", prox: 0.52, marked: false }
     ]}
   ];
@@ -451,13 +451,13 @@
         state.fixed[m.name].takenThisWeek = 0;
       });
 
-      var nIncidents = 2 + Math.floor(rng() * 3); // 2..4
+      var nIncidents = 3 + Math.floor(rng() * 4); // 3..6
       for (var inc = 0; inc < nIncidents; inc++) {
         // shared per-responder rolls for this incident
         var rolls = {};
         region.members.forEach(function (m) {
           rolls[m.name] = {
-            prox: clamp01(m.prox + (rng() - 0.5) * 0.3),
+            prox: clamp01(m.prox + (rng() - 0.5) * 0.4),
             yes: rng(),
             miss: rng()
           };
