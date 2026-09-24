@@ -28,7 +28,13 @@ accountable for what happens next ("Helen decides," "I'm proposing,
 Marcus signs off").
 
 **Fails when:** ownership is implied but never stated, or diffused
-across a group with nobody actually holding it.
+across a group with nobody actually holding it — and just as much when
+an owner slot exists but was never actually filled in. A first-person
+voice ("I'm proposing...") is not by itself enough to pass this check;
+confirm the name attached to that voice is a real name, not a leftover
+template placeholder ("[You]", "[Name]", "TBD", a blank signature
+line). A brief can sound owned throughout and still fail this check if
+the one place that should name the owner was never actually written.
 
 ### 2. It says how we'll know it worked
 
