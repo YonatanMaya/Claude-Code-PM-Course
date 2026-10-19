@@ -154,9 +154,9 @@ Priya's "mostly seasonal" read comes back up:
   `history.py` (decline penalty 0.12 > acceptance credit 0.08, no
   decay-to-neutral), this looks like a self-reinforcing feedback loop:
   fall behind once, get fewer chances to recover, fall further behind.
-  Ticket and interview evidence fits this closely (Kip's two responders,
-  same week, one dead quiet one nonstop; several tickets describe a
-  responder's first offer in weeks being immediately lost to timeout).
+  The interviews fit this (Kip's two responders, same week, one dead
+  quiet and one nonstop). The tickets mostly don't: see the October
+  correction below.
 - **Before acting on this:** need per-incident routing-priority logs
   (not weekly aggregates) for the affected responders from Wen, to
   confirm the mechanism rather than just the correlation. Ravi should
@@ -237,9 +237,8 @@ fix, then went further and wrote the actual patch. All of this is on
   (`quiet-responder-mock.html`, then a corrected `prototype.html`)
   told from Kip and Meteor Mite's side — who it's for, what changes,
   what it deliberately doesn't do (not a setting, not instant, no
-  exposed score). `05-super-speed/brief.md` is the short status email
-  version — confirmed vs. still-needs-Wen's-sign-off, kept separate
-  from the click-through itself.
+  exposed score). (Superseded in October: `brief.md` is now the real
+  brief, and the status email moved to `drafts/`.)
 - **Self-review caught real gaps before this went anywhere near
   Marcus:** walking through Kip/Meteor Mite's actual week-by-week
   experience surfaced that the first mock's "with fix" recovery curve
@@ -266,8 +265,8 @@ fix, then went further and wrote the actual patch. All of this is on
   Narrowed the proximity spread and widened jitter/incident volume to
   fix it. Worth remembering if the simulator ever looks "stuck" again
   — check calibration before assuming the fix logic is wrong.
-- **The 4.3 patch is now real code**, not just a proposal, in
-  `00-rook/code/dispatch-routing/`:
+- **The 4.3 patch** was written in September (moved out of `00-rook/`
+  in October; it now lives in `05-super-speed/4.3-patch/`):
   - `config.py`: `OFFER_TIMEOUT_SECONDS` back to 90; added
     `TIMEOUT_PENALTY` (0.04, vs. 0.12 for an active decline),
     `DECAY_RATE` (0.08), `RECOVERY_FLOOR` (0.20). Proximity/
@@ -286,3 +285,48 @@ fix, then went further and wrote the actual patch. All of this is on
     wires that up yet. And the persistence-layer question from the
     investigation above still isn't resolved. Both need Wen/Marcus
     before this goes beyond a proposal in a PR.
+
+### Final submission pass (October 2026)
+
+Lined the repo up with the course's final-project checklist. Where
+everything lives now:
+
+- `02-super-hearing/feedback-read.md`: interviews and tickets grouped,
+  counted and quoted, and where the two piles disagree.
+- `03-rewind/the-number.md`: the number for Helen (4 of 16 responders
+  went from ~12 pings a week to ~2, pool total down only 6%), the 40
+  rows behind it, and a second calculation that agrees (the four's
+  share of all pings fell from 28.4% to 5.2%).
+- `04-x-ray-vision/what-the-code-does.md`: what the routing code does,
+  what it doesn't do, and the answer to Marcus's 14 Aug question (it
+  "fell out that way").
+- `05-super-speed/brief.md` (the real brief: owner, problem first,
+  three checkable success measures, a decision rule) and
+  `prototype.html`. The 4.3 patch is in `4.3-patch/`, and older
+  versions are in `drafts/`.
+- `.claude/skills/review-checklist/SKILL.md`: the skill. It's
+  project-level, so it stays inside this folder. Runs are written up in
+  `06-sidekicks/skill-runs.md`: 4 of 4 match the reference output after
+  two calibrations. It's scheduled for Monday mornings.
+- `final-report.html`: the presentation, built from all six modules.
+- `00-rook/` is back to the original. The 4.3 fix lives only as a patch.
+
+Corrections worth remembering:
+
+- **The tickets mostly contradict the export.** 21 of the 25 tickets
+  report silence, but only 4 of those 21 are about responders whose
+  pings actually collapsed (The Undertow ×3, Farlight ×1). The other 17
+  describe silence in weeks the export logs normal or rising volume
+  (Nightwell: "nothing in like 10 days" in a week with 18 sent and 14
+  taken). Earlier I treated those tickets as supporting evidence, which
+  was wrong. Use the export for volume and tickets for distress. Open
+  question for Wen and Ravi: what the export counts, and whether pings
+  are attributed to the right responder.
+- **The simulator illustrates the mechanism but doesn't validate the
+  fix.** Run headlessly for 12 weeks, the 4.3 column looks almost the
+  same as 4.2. The model gives 1–3 pings per responder a week, against
+  about 11 in reality, so it's too small to answer the question. The
+  brief carries a decision rule instead: if the four aren't back to 6
+  pings a week within four weeks, add a minimum weekly share of pings.
+- **Project-level skills exist.** `.claude/skills/` inside a repo works,
+  so a skill doesn't have to break the "stay in this folder" rule.
