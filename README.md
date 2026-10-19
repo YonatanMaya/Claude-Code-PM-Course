@@ -23,7 +23,7 @@ Everything about Rook Industries in here is a **fictional teaching scenario**. I
 
 ## Where my work is
 
-**Start here: [`final-report.html`](final-report.html)**, the whole case in one presentation. Open it in a browser.
+**Start here: [the final report, live](https://yonatanmaya.github.io/Claude-Code-PM-Course/final-report.html)**, the whole case in one presentation. The same file is [`final-report.html`](final-report.html) in this repo.
 
 | # | Artifact | Prompts |
 |---|---|---|
@@ -32,7 +32,7 @@ Everything about Rook Industries in here is a **fictional teaching scenario**. I
 | 3 | [`the-number.md`](03-rewind/the-number.md): 4 of 16 responders dropped from ~12 pings a week to ~2, with the 40 rows behind it, checked a second way | [`03-rewind/prompts.md`](03-rewind/prompts.md) |
 | 4 | [`what-the-code-does.md`](04-x-ray-vision/what-the-code-does.md): what the routing code does, what it doesn't, and Marcus's answer | [`04-x-ray-vision/prompts.md`](04-x-ray-vision/prompts.md) |
 | 5 | [`brief.md`](05-super-speed/brief.md) + [`prototype.html`](05-super-speed/prototype.html), plus the [4.3 patch](05-super-speed/4.3-patch/) and a [routing simulator](05-super-speed/routing-fix-simulator.html) | [`05-super-speed/prompts.md`](05-super-speed/prompts.md) |
-| 6 | [`review-checklist` skill](.claude/skills/review-checklist/SKILL.md), run twice and scheduled: [`skill-runs.md`](06-sidekicks/skill-runs.md) | [`06-sidekicks/prompts.md`](06-sidekicks/prompts.md) |
+| 6 | [`review-checklist` skill](https://github.com/YonatanMaya/Claude-Code-PM-Course/blob/main/.claude/skills/review-checklist/SKILL.md), run twice and scheduled: [`skill-runs.md`](06-sidekicks/skill-runs.md) | [`06-sidekicks/prompts.md`](06-sidekicks/prompts.md) |
 
 ## The one habit that matters
 
