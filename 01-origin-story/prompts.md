@@ -24,6 +24,12 @@ built from your own questions.
 
 ### 1.
 
+I just joined Rook Industries as PM for Rook Dispatch. Read everything in 00-rook/company/ and add to the CLAUDE.md at the root of this folder, what you'd need to know to help me do my job here: the products, the people, the vocabulary, where things stand. Leave the session scope block at the top. Keep it under two pages.
+
 ### 2.
 
+I want to understand the problems and pain points of the release 4.2 and what caused it, what this release aimed to achieve, what was the job to be done, what would you recommend us to start with.
+
 ### 3.
+
+give us executive summary with three main ideas and bullet points straight forward

@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiet-Responder Fix — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f4f7;
+    --surface: #ffffff;
+    --surface-2: #eaedf2;
+    --border: #dde1e8;
+    --text: #1c212b;
+    --muted: #5b6472;
+    --accent: #3f6fd6;
+    --accent-soft: #e8edfb;
+    --good: #2f9e5b;
+    --good-soft: #e5f5ec;
+    --warn: #b3751d;
+    --warn-soft: #faefdf;
+    --note: #8a4fc9;
+    --note-soft: #f1e7fb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 20px;
+    padding-block: 28px;
+    line-height: 1.45;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  .wrap { max-width: 1000px; margin-inline: auto; }
+
+  .locator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .locator .crumb { color: var(--text); }
+  .locator .sep { color: var(--border); }
+
+  header h1 {
+    font-size: clamp(21px, 4vw, 28px);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  header p.lede {
+    margin: 0 0 20px;
+    max-width: 64ch;
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-block: 20px 10px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .ctl-label { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .segmented {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .segmented button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .segmented button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .week-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 220px;
+  }
+  .week-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .week-readout {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    min-width: 90px;
+    text-align: right;
+  }
+  .week-readout .proj { color: var(--muted); font-size: 10.5px; display: block; }
+
+  .note-toggle {
+    margin-left: auto;
+    appearance: none;
+    border: 1px solid var(--note);
+    background: var(--note-soft);
+    color: var(--note);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .note-toggle[aria-pressed="true"] { background: var(--note); color: #fff; }
+  .note-toggle:focus-visible { outline: 2px solid var(--note); outline-offset: 2px; }
+
+  .devices {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    margin-top: 18px;
+  }
+  @media (max-width: 640px) { .devices { grid-template-columns: 1fr; } }
+
+  .console {
+    background: #14171e;
+    border: 1px solid #262c38;
+    border-radius: 12px;
+    padding: 16px;
+    color: #e7e9ee;
+    position: relative;
+  }
+  .console-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .console-head .title { font-size: 12.5px; font-weight: 600; color: #cfd4de; }
+  .console-head .sub { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: #6b7383; }
+  .cards { display: grid; gap: 10px; }
+  .rcard {
+    background: #1b202b;
+    border: 1px solid #2a3040;
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+  }
+  .rcard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .rcard-name { font-size: 13.5px; font-weight: 600; }
+  .rcard-handler { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: #7a8298; margin-top: 2px; }
+  .rcard-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    cursor: default;
+  }
+  .rcard-pill.warn { background: #3a2e1b; color: #dd9b46; }
+  .rcard-pill.good { background: #1d3327; color: #52c07c; }
+  .spark-row { display: flex; align-items: flex-end; gap: 12px; }
+  .spark-row svg { flex: 1; min-width: 0; }
+  .spark-meta { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: #8b93a4; text-align: right; white-space: nowrap; }
+  .spark-meta b { display: block; color: #e7e9ee; font-size: 12.5px; }
+
+  .callout {
+    margin-top: 8px;
+    background: var(--note-soft);
+    border: 1px solid var(--note);
+    color: #3a2154;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    display: none;
+  }
+  .callout.show { display: block; }
+  .callout b { color: var(--note); }
+
+  .phone-shell { background: #0e1013; border-radius: 30px; padding: 10px; }
+  .phone-screen {
+    background: #fbfbfd;
+    border-radius: 22px;
+    overflow: hidden;
+    color: #1c212b;
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-bar { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace; font-size: 10px; color: #8a8f99; padding: 8px 16px 2px; }
+  .phone-head { padding: 10px 16px 12px; border-bottom: 1px solid #edeef1; }
+  .phone-head .app { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a8f99; font-weight: 600; }
+  .phone-head .who { font-size: 16.5px; font-weight: 700; margin-top: 2px; }
+  .notif-list { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+  .notif { background: #f4f5f8; border: 1px solid #e7e9ee; border-radius: 12px; padding: 9px 11px; }
+  .notif .row1 { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
+  .notif .row2 { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .notif.taken { border-color: #cdeadb; background: #f2fbf6; }
+  .notif.taken .row1 { color: #1f7a45; }
+  .notif-empty { margin: auto; text-align: center; color: #9aa0ab; font-size: 12.5px; padding: 20px; }
+  .notif-empty .big { font-size: 24px; margin-bottom: 6px; }
+
+  .caption { font-size: 11.5px; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  .constraints {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .ctag { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; font-size: 12px; color: var(--muted); }
+  .ctag b { display: block; color: var(--text); font-size: 12.5px; margin-bottom: 2px; }
+
+  footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="locator">
+    <span class="crumb">Rook Dispatch</span><span class="sep">/</span>
+    <span class="crumb">Web console</span><span class="sep">/</span>
+    <span class="crumb" style="color:var(--accent)">Coverage view</span>
+    <span class="sep">/</span>
+    <span>existing screen &mdash; nothing new added to the UI</span>
+  </div>
+
+  <header>
+    <h1>What changes for Kip and Meteor&nbsp;Mite</h1>
+    <p class="lede">
+      This is Kip's real coverage screen and Meteor Mite's real phone
+      &mdash; same product, no new screens. Only the numbers behind
+      them differ across the two scenarios below. Click through it.
+    </p>
+  </header>
+
+  <div class="controls">
+    <span class="ctl-label">Scenario</span>
+    <div class="segmented" role="group" aria-label="Scenario">
+      <button id="btn-without" aria-pressed="true">Without the fix</button>
+      <button id="btn-with" aria-pressed="false">With the fix</button>
+    </div>
+
+    <div class="week-row">
+      <span class="ctl-label">Week</span>
+      <input type="range" id="week-slider" min="0" max="15" value="9" step="1" aria-label="Week">
+      <span class="week-readout" id="week-readout"></span>
+    </div>
+
+    <button class="note-toggle" id="btn-notes" aria-pressed="false">
+      <span aria-hidden="true">&#9432;</span> Reviewer notes: off
+    </button>
+  </div>
+
+  <div class="devices">
+    <div class="console">
+      <div class="console-head">
+        <span class="title">Coverage &middot; Kip's roster</span>
+        <span class="sub" id="console-date"></span>
+      </div>
+      <div class="cards">
+        <div class="rcard" id="card-mite">
+          <div class="rcard-top">
+            <div>
+              <div class="rcard-name">Meteor Mite</div>
+              <div class="rcard-handler">handler: Kip</div>
+            </div>
+            <span class="rcard-pill warn" id="pill-mite">quiet</span>
+          </div>
+          <div class="spark-row">
+            <svg id="spark-mite" viewBox="0 0 240 42" preserveAspectRatio="none"></svg>
+            <div class="spark-meta">this week<b id="meta-mite">&mdash;</b></div>
+          </div>
+          <div class="callout" id="note-mite"></div>
+        </div>
+        <div class="rcard" id="card-gale">
+          <div class="rcard-top">
+            <div>
+              <div class="rcard-name">The Gale</div>
+              <div class="rcard-handler">handler: Kip</div>
+            </div>
+            <span class="rcard-pill good">steady</span>
+          </div>
+          <div class="spark-row">
+            <svg id="spark-gale" viewBox="0 0 240 42" preserveAspectRatio="none"></svg>
+            <div class="spark-meta">this week<b id="meta-gale">&mdash;</b></div>
+          </div>
+          <div class="callout" id="note-gale"></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="phone-bar"><span>9:41</span><span>&#128246;</span></div>
+          <div class="phone-head">
+            <div class="app">Rook &middot; callouts</div>
+            <div class="who">Meteor Mite</div>
+          </div>
+          <div class="notif-list" id="notif-list"></div>
+        </div>
+      </div>
+      <p class="caption">Meteor Mite's phone, same week</p>
+    </div>
+  </div>
+
+  <div class="constraints">
+    <div class="ctag"><b>Not a setting</b>No dial for Kip, no manual override on a specific responder.</div>
+    <div class="ctag"><b>Not instant</b>Recovery is gradual and noisy &mdash; not a clean jump week to week.</div>
+    <div class="ctag"><b>No score shown</b>Kip and Mite see only what's on screen today &mdash; status and counts, never a number like a score.</div>
+  </div>
+
+  <footer>
+    Weeks through 31&nbsp;Aug are the real numbers from
+    <span class="mono">callout-history.csv</span>. Weeks after that are
+    illustrative projections for each scenario, not measured data.
+    Click <span class="mono">Reviewer notes</span> to see what's
+    happening behind each card &mdash; that layer is for this review,
+    it's not part of what Kip or Mite would ever see.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var weeksPast = ["6/29","7/06","7/13","7/20","7/27","8/03","8/10","8/17","8/24","8/31"];
+  var mitePast = [11,12,10,11,12,11,10,4,2,1];
+  var mitePastTaken = [7,9,6,7,9,8,4,1,0,0];
+  var galePast = [13,12,13,14,13,13,15,17,20,21];
+
+  var futureWeeks = ["9/07","9/14","9/21","9/28","10/05","10/12"];
+
+  // "without the fix": stays stuck near zero, still noisy, not a flat line
+  var miteWithout = [1,0,1,0,1,0];
+  var galeWithout = [20,22,19,21,20,22];
+
+  // "with the fix": floor stops the zero weeks; decay pulls it up over
+  // time; it's noisy, not a clean staircase, because real callout
+  // volume still varies week to week
+  var miteWith    = [1,3,2,5,4,7];
+  // the fix explicitly leaves an above-neutral standing alone -- so
+  // Gale's load does NOT get artificially eased down here
+  var galeWith    = [21,19,22,20,21,19];
+
+  var allWeeks = weeksPast.concat(futureWeeks);
+  var n = allWeeks.length;
+
+  var miteNotes = {
+    10: "Floor kicking in: his standing can't sit at zero indefinitely anymore. This isn't a big jump &mdash; just not nothing.",
+    12: "Still noisy. A quiet week here doesn't mean the fix stopped working.",
+    14: "This is decay, not luck: recovering because weeks have passed, not because of one good offer.",
+    15: "Trending back toward his old ~11/week baseline. Not there yet."
+  };
+  var galeNote = "Nothing in the fix touches an above-neutral standing. Gale's load doesn't move because of this change &mdash; it was never the problem.";
+
+  function buildSpark(svg, data, color, activeIdx) {
+    var max = Math.max(22, Math.max.apply(null, data));
+    var w = 240, h = 42, len = data.length;
+    var stepX = w / (len - 1);
+    var pts = data.map(function (v, i) {
+      return [i * stepX, h - (v / max) * (h - 6) - 3];
+    });
+    var path = pts.map(function (p, i) {
+      return (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1);
+    }).join(" ");
+    var markers = pts.map(function (p, i) {
+      var r = i === activeIdx ? 3.4 : 1.6;
+      var op = i === activeIdx ? 1 : 0.55;
+      return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + r + '" fill="' + color + '" opacity="' + op + '"/>';
+    }).join("");
+    svg.innerHTML =
+      '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>' +
+      markers;
+  }
+
+  var withFix = false;
+  var weekIdx = 9;
+  var notesOn = false;
+
+  function currentData() {
+    var mite = mitePast.concat(withFix ? miteWith : miteWithout);
+    var gale = galePast.concat(withFix ? galeWith : galeWithout);
+    return { mite: mite, gale: gale };
+  }
+
+  function render() {
+    var d = currentData();
+    var miteVal = d.mite[weekIdx];
+    var galeVal = d.gale[weekIdx];
+    var isFuture = weekIdx >= weeksPast.length;
+
+    buildSpark(document.getElementById('spark-mite'), d.mite, '#dd9b46', weekIdx);
+    buildSpark(document.getElementById('spark-gale'), d.gale, '#52c07c', weekIdx);
+    document.getElementById('meta-mite').textContent = miteVal;
+    document.getElementById('meta-gale').textContent = galeVal;
+    document.getElementById('console-date').textContent = 'week of ' + allWeeks[weekIdx];
+
+    var readout = document.getElementById('week-readout');
+    readout.innerHTML = allWeeks[weekIdx] + (isFuture ? '<span class="proj">projected</span>' : '<span class="proj">real data</span>');
+
+    var pillMite = document.getElementById('pill-mite');
+    if (miteVal >= 6) {
+      pillMite.className = 'rcard-pill good';
+      pillMite.textContent = 'back in rotation';
+    } else {
+      pillMite.className = 'rcard-pill warn';
+      pillMite.textContent = miteVal === 0 ? 'quiet' : 'starting to move';
+    }
+
+    // reviewer notes
+    var noteMite = document.getElementById('note-mite');
+    var noteGale = document.getElementById('note-gale');
+    if (notesOn && withFix && miteNotes[weekIdx]) {
+      noteMite.innerHTML = '<b>Reviewer note:</b> ' + miteNotes[weekIdx];
+      noteMite.classList.add('show');
+    } else {
+      noteMite.classList.remove('show');
+    }
+    if (notesOn && isFuture) {
+      noteGale.innerHTML = '<b>Reviewer note:</b> ' + galeNote;
+      noteGale.classList.add('show');
+    } else {
+      noteGale.classList.remove('show');
+    }
+
+    // phone: last 4 weeks up to and including selected week
+    var list = document.getElementById('notif-list');
+    var start = Math.max(0, weekIdx - 3);
+    var recentVals = d.mite.slice(start, weekIdx + 1);
+    var recentWeeks = allWeeks.slice(start, weekIdx + 1);
+    list.innerHTML = '';
+    var any = recentVals.some(function (v) { return v > 0; });
+    if (!any) {
+      list.innerHTML = '<div class="notif-empty"><div class="big">&#128564;</div>No callout offers this week.</div>';
+    } else {
+      recentVals.forEach(function (count, i) {
+        var wk = recentWeeks[i];
+        var abs = start + i;
+        var offers = count + ' offer' + (count === 1 ? '' : 's');
+        var el = document.createElement('div');
+        if (count === 0) {
+          el.className = 'notif';
+          el.innerHTML = '<div class="row1"><span>No offers</span><span class="mono">' + wk + '</span></div><div class="row2">Nothing sent this week.</div>';
+        } else if (abs >= weeksPast.length) {
+          el.className = 'notif taken';
+          el.innerHTML = '<div class="row1"><span>Offers arriving</span><span class="mono">' + wk + '</span></div><div class="row2">' + offers + ' this week (projected).</div>';
+        } else if (mitePastTaken[abs] === 0) {
+          el.className = 'notif';
+          el.innerHTML = '<div class="row1"><span>None taken</span><span class="mono">' + wk + '</span></div><div class="row2">' + offers + ', none taken.</div>';
+        } else {
+          el.className = 'notif taken';
+          el.innerHTML = '<div class="row1"><span>Callouts accepted</span><span class="mono">' + wk + '</span></div><div class="row2">Took ' + mitePastTaken[abs] + ' of ' + offers + '.</div>';
+        }
+        list.appendChild(el);
+      });
+    }
+  }
+
+  var btnWithout = document.getElementById('btn-without');
+  var btnWith = document.getElementById('btn-with');
+  var btnNotes = document.getElementById('btn-notes');
+  var slider = document.getElementById('week-slider');
+
+  btnWithout.addEventListener('click', function () {
+    withFix = false;
+    btnWithout.setAttribute('aria-pressed', 'true');
+    btnWith.setAttribute('aria-pressed', 'false');
+    render();
+  });
+  btnWith.addEventListener('click', function () {
+    withFix = true;
+    btnWithout.setAttribute('aria-pressed', 'false');
+    btnWith.setAttribute('aria-pressed', 'true');
+    render();
+  });
+  btnNotes.addEventListener('click', function () {
+    notesOn = !notesOn;
+    btnNotes.setAttribute('aria-pressed', String(notesOn));
+    btnNotes.innerHTML = '<span aria-hidden="true">&#9432;</span> Reviewer notes: ' + (notesOn ? 'on' : 'off');
+    render();
+  });
+  slider.addEventListener('input', function () {
+    weekIdx = parseInt(slider.value, 10);
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

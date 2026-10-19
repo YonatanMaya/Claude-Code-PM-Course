@@ -16,6 +16,17 @@ built from your own questions.
 
 ### 1.
 
+So if you were in my shoes - what would be your next prompt? and once you have it, execute it by yourself 
+what would be the numbers we want to verify
+
 ### 2.
 
+So what do they have in common these four superheroes
+
 ### 3.
+
+> it argues against something about them individually, and toward something about the routing mechanism that happened to catch these four.
+
+So we're back into the routing mechanism ? that's the only explanation we can understand from all that data? 
+that's the source issue? 
+If that's the case - what will be our next steps from a product perspective - what will you do and execute it

@@ -16,6 +16,13 @@ built from your own questions.
 
 ### 1.
 
+so if you were in my shoes - what would be your next steps as a product manager in order to understand the issue and what cause the troubles 
+please create me a prompt that covers everything we'll need and doing what research we need in order to take decisions .. and then i'll paste the prompt again here so you'll have another session to try
+
 ### 2.
 
+so what is your verdict?
+
 ### 3.
+
+why? let's please deep dive through the data and research thoroughly

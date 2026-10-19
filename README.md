@@ -12,14 +12,27 @@ Everything about Rook Industries in here is a **fictional teaching scenario**. I
 
 | # | Module | Superpower | What lands here | Status |
 |---|---|---|---|---|
-| 1 | **Orientation & Context** | Origin Story | `CLAUDE.md` at the root, written from Rook's own documents, plus your first prompts in `01-origin-story/prompts.md` | ☐ |
-| 2 | **Listening at Scale** | Super-Hearing | Your read of four interviews and twenty-five tickets, and where the two piles disagree, in `02-super-hearing/prompts.md` | ☐ |
-| 3 | **Reading the Numbers** | Rewind | The number you'd put in front of the Director of Product, and the rows it came from, in `03-rewind/prompts.md` | ☐ |
-| 4 | **Debugging Code** | X-Ray Vision | What the routing code does, and what it doesn't do, in `04-x-ray-vision/prompts.md` | ☐ |
-| 5 | **Building Yourself Without Coding** | Super-Speed | A one-page brief and a clickable prototype, alongside `05-super-speed/prompts.md` | ☐ |
-| 6 | **Building Your Own Skills** | Sidekicks | `review-checklist`, written once and run twice, alongside `06-sidekicks/prompts.md` | ☐ |
+| 1 | **Orientation & Context** | Origin Story | `CLAUDE.md` at the root, written from Rook's own documents, plus your first prompts in `01-origin-story/prompts.md` | ✅ |
+| 2 | **Listening at Scale** | Super-Hearing | Your read of four interviews and twenty-five tickets, and where the two piles disagree, in `02-super-hearing/prompts.md` | ✅ |
+| 3 | **Reading the Numbers** | Rewind | The number you'd put in front of the Director of Product, and the rows it came from, in `03-rewind/prompts.md` | ✅ |
+| 4 | **Debugging Code** | X-Ray Vision | What the routing code does, and what it doesn't do, in `04-x-ray-vision/prompts.md` | ✅ |
+| 5 | **Building Yourself Without Coding** | Super-Speed | A one-page brief and a clickable prototype, alongside `05-super-speed/prompts.md` | ✅ |
+| 6 | **Building Your Own Skills** | Sidekicks | `review-checklist`, written once and run twice, alongside `06-sidekicks/prompts.md` | ✅ |
 
 **You do not write or read any code in this course.** Every question you ask is in plain English.
+
+## Where my work is
+
+**Start here: [`final-report.html`](final-report.html)**, the whole case in one presentation. Open it in a browser.
+
+| # | Artifact | Prompts |
+|---|---|---|
+| 1 | [`CLAUDE.md`](CLAUDE.md): Rook, the people, the vocabulary, and everything I learned along the way | [`01-origin-story/prompts.md`](01-origin-story/prompts.md) |
+| 2 | [`feedback-read.md`](02-super-hearing/feedback-read.md): 4 interviews and 25 tickets, grouped, counted and quoted, and where they disagree | [`02-super-hearing/prompts.md`](02-super-hearing/prompts.md) |
+| 3 | [`the-number.md`](03-rewind/the-number.md): 4 of 16 responders dropped from ~12 pings a week to ~2, with the 40 rows behind it, checked a second way | [`03-rewind/prompts.md`](03-rewind/prompts.md) |
+| 4 | [`what-the-code-does.md`](04-x-ray-vision/what-the-code-does.md): what the routing code does, what it doesn't, and Marcus's answer | [`04-x-ray-vision/prompts.md`](04-x-ray-vision/prompts.md) |
+| 5 | [`brief.md`](05-super-speed/brief.md) + [`prototype.html`](05-super-speed/prototype.html), plus the [4.3 patch](05-super-speed/4.3-patch/) and a [routing simulator](05-super-speed/routing-fix-simulator.html) | [`05-super-speed/prompts.md`](05-super-speed/prompts.md) |
+| 6 | [`review-checklist` skill](.claude/skills/review-checklist/SKILL.md), run twice and scheduled: [`skill-runs.md`](06-sidekicks/skill-runs.md) | [`06-sidekicks/prompts.md`](06-sidekicks/prompts.md) |
 
 ## The one habit that matters
 
@@ -39,16 +52,30 @@ claude-code-for-pms-final/
 │   ├── feedback/interviews/       ← four recorded conversations · Module 2
 │   ├── feedback/tickets/          ← twenty-five support tickets · Module 2
 │   └── code/dispatch-routing/     ← the routing code · Module 4
+├── final-report.html               ← the presentation · Module 6
+├── .claude/skills/review-checklist/SKILL.md  ← the skill · Module 6
 ├── 01-origin-story/prompts.md
-├── 02-super-hearing/prompts.md
-├── 03-rewind/prompts.md
-├── 04-x-ray-vision/prompts.md
+├── 02-super-hearing/
+│   ├── feedback-read.md            ← interviews vs. tickets
+│   └── prompts.md
+├── 03-rewind/
+│   ├── the-number.md               ← the number and its rows
+│   └── prompts.md
+├── 04-x-ray-vision/
+│   ├── what-the-code-does.md       ← does / doesn't do / Marcus's answer
+│   └── prompts.md
 ├── 05-super-speed/
 │   ├── director-request.txt        ← the note your brief answers
+│   ├── brief.md                    ← the brief
+│   ├── prototype.html              ← the clickable prototype
+│   ├── routing-fix-simulator.html  ← the scoring rules, 4.2 vs. 4.3
+│   ├── 4.3-patch/                  ← the proposed code fix, as a patch
+│   ├── drafts/                     ← earlier versions, kept
 │   └── prompts.md
 └── 06-sidekicks/
     ├── briefs/                     ← four Rook one-pagers for your skill to check
     ├── scheduled-run-output.txt    ← what an overnight run looks like
+    ├── skill-runs.md               ← my runs, and how the skill was calibrated
     └── prompts.md
 ```
 
