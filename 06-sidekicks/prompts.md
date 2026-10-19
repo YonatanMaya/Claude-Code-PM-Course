@@ -64,3 +64,12 @@ so it isn't lost, but nobody's picked it up yet.
 ### 3.
 
 Why we had to is difference - short and straight forward answer
+
+---
+
+### The prompt that generated `final-report.html`
+
+The lines from my message that asked for the final report:
+
+אני פשוט רוצה להגיש הכל ולסיים עם זה ולהגיש בצורה טובה
+אם אתה צריך לשנות משהו אז כמובן שתשנה או תוסיף..
